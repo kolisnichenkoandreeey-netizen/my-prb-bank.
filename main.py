@@ -11,16 +11,26 @@ DB_FILE = "database.json"
 ADMIN_USERNAME = "admin"
 ADMIN_PIN = "7777"
 
-# НОВАЯ СТРУКТУРА: балансы по нулям, новые имена и прочерки
+# БАЗА ДАННЫХ: Маргарите 1487, Братишкину 1, остальным по 0
 DEFAULT_DATA = {
     "citizens": {
-        "1": {"name": "Маргарита", "balance": 0, "pin": "1111", "history": []},
-        "2": {"name": "Братишкин", "balance": 0, "pin": "2222", "history": []},
+        "1": {"name": "Маргарита", "balance": 1487, "pin": "1111", "history": ["🎁 Стартовый баланс: <b>1487 PRB</b>"]},
+        "2": {"name": "Братишкин", "balance": 1, "pin": "2222", "history": ["🎁 Стартовый баланс: <b>1 PRB</b>"]},
         "3": {"name": "—", "balance": 0, "pin": "3333", "history": []},
         "4": {"name": "—", "balance": 0, "pin": "4444", "history": []},
-        "5": {"name": "—", "balance": 0, "pin": "5555", "history": []}
+        "5": {"name": "—", "balance": 0, "pin": "5555", "history": []},
+        "6": {"name": "—", "balance": 0, "pin": "6666", "history": []},
+        "7": {"name": "—", "balance": 0, "pin": "7778", "history": []},
+        "8": {"name": "—", "balance": 0, "pin": "8888", "history": []},
+        "9": {"name": "—", "balance": 0, "pin": "9999", "history": []},
+        "10": {"name": "—", "balance": 0, "pin": "1010", "history": []},
+        "11": {"name": "—", "balance": 0, "pin": "1112", "history": []},
+        "12": {"name": "—", "balance": 0, "pin": "1212", "history": []},
+        "13": {"name": "—", "balance": 0, "pin": "1313", "history": []},
+        "14": {"name": "—", "balance": 0, "pin": "1414", "history": []},
+        "15": {"name": "—", "balance": 0, "pin": "1515", "history": []}
     },
-    "global_logs": ["🧹 Система перезапущена. Балансы обнулены, база данных обновлена."]
+    "global_logs": ["🧹 Настройки баланса обновлены. Маргарита: 1487 PRB, Братишкин: 1 PRB."]
 }
 
 def load_db():
@@ -45,7 +55,7 @@ def save_db(data):
 @app.get("/", response_class=HTMLResponse)
 def citizen_login_view(error: str = None):
     db = load_db()
-    options = "".join([f'<option value="{cid}">{data["name"]}</option>' for cid, data in db["citizens"].items()])
+    options = "".join([f'<option value="{cid}">{data["name"]} (ID: {cid})</option>' for cid, data in db["citizens"].items()])
     error_msg = f'<p style="color: #f43f5e; font-size: 0.9rem;">{error}</p>' if error else ''
     return f"""
     <!DOCTYPE html>
@@ -94,7 +104,14 @@ def citizen_cabinet(citizen_id: str, error: str = None, success: str = None):
     if citizen_id not in db["citizens"]:
         return RedirectResponse(url="/")
     user = db["citizens"][citizen_id]
-    recipients = "".join([f'<option value="{cid}">{data["name"]}</option>' for cid, data in db["citizens"].items() if cid != citizen_id])
+    
+    # Подготовка списка пользователей для JavaScript поиска (исключая самого себя)
+    search_users = []
+    for cid, data in db["citizens"].items():
+        if cid != citizen_id:
+            search_users.append({"id": cid, "name": data["name"]})
+    search_users_json = json.dumps(search_users, ensure_ascii=False)
+
     history_rows = "".join([f"<li>{h}</li>" for h in reversed(user["history"])])
     if not history_rows:
         history_rows = "<li style='color: #64748b;'>Транзакций нет.</li>"
@@ -112,12 +129,17 @@ def citizen_cabinet(citizen_id: str, error: str = None, success: str = None):
             .box {{ background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 24px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 30px 60px rgba(0,0,0,0.4); }}
             .balance-card {{ background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; text-align: center; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }}
             .amount {{ font-size: 2.5rem; font-weight: bold; color: #eab308; }}
-            select, input, button {{ width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #000; color: #fff; box-sizing: border-box; }}
+            input, button {{ width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #000; color: #fff; box-sizing: border-box; }}
             button {{ background: linear-gradient(90deg, #a855f7, #eab308); font-weight: bold; cursor: pointer; border: none; }}
             ul {{ list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }}
             li {{ background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 8px; border-radius: 8px; font-size: 0.9rem; border-left: 4px solid #eab308; }}
             .back-link {{ display: block; text-align: center; color: #64748b; text-decoration: none; margin-top: 20px; }}
             .logo-text {{ font-weight: 900; color: #eab308; }}
+            
+            /* Стили для выпадающего списка поиска */
+            .search-results {{ background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; max-height: 150px; overflow-y: auto; margin-top: 5px; display: none; padding: 0; list-style: none; text-align: left; }}
+            .search-item {{ padding: 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }}
+            .search-item:hover {{ background: rgba(255,255,255,0.1); color: #eab308; }}
         </style>
     </head>
     <body>
@@ -129,19 +151,84 @@ def citizen_cabinet(citizen_id: str, error: str = None, success: str = None):
                 <div style="color: #94a3b8; font-size: 0.9rem;">Доступно средств:</div>
                 <div class="amount">{user['balance']} PRB</div>
             </div>
-            <h3>Факэску Перевод (Быстрый платеж):</h3>
-            <form action="/transfer" method="post">
+            
+            <h3>Факэску Перевод (Поиск получателя):</h3>
+            <form action="/transfer" method="post" id="transferForm">
                 <input type="hidden" name="sender_id" value="{citizen_id}">
-                <select name="receiver_id">{recipients}</select>
+                <input type="hidden" name="receiver_id" id="receiver_id" required>
+                
+                <input type="text" id="search_input" placeholder="Начните вводить имя получателя..." autocomplete="off" required>
+                <ul class="search-results" id="search_results"></ul>
+                
                 <input type="number" name="amount" placeholder="Сумма в PRB" min="1" required>
-                <button type="submit">Перевести мгновенно ➔</button>
+                <button type="submit" id="submit_btn" style="opacity: 0.6; cursor: not-allowed;" disabled>Выберите получателя из поиска</button>
             </form>
             <a href="/" class="back-link">← Выйти из системы</a>
         </div>
+        
         <div class="box">
             <h3>История ZET-операций:</h3>
             <ul>{history_rows}</ul>
         </div>
+
+        <script>
+            const users = {search_users_json};
+            const searchInput = document.getElementById('search_input');
+            const searchResults = document.getElementById('search_results');
+            const receiverIdInput = document.getElementById('receiver_id');
+            const submitBtn = document.getElementById('submit_btn');
+
+            searchInput.addEventListener('input', function() {{
+                const query = this.value.toLowerCase().trim();
+                searchResults.innerHTML = '';
+                
+                receiverIdInput.value = '';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.innerText = 'Выберите получателя из поиска';
+
+                if (!query) {{
+                    searchResults.style.display = 'none';
+                    return;
+                }}
+
+                const filtered = users.filter(user => user.name.toLowerCase().includes(query));
+
+                if (filtered.length > 0) {{
+                    filtered.forEach(user => {{
+                        const li = document.createElement('li');
+                        li.className = 'search-item';
+                        li.innerText = user.name;
+                        li.addEventListener('click', function() {{
+                            searchInput.value = user.name;
+                            receiverIdInput.value = user.id;
+                            searchResults.style.display = 'none';
+                            
+                            submitBtn.disabled = false;
+                            submitBtn.style.opacity = '1';
+                            submitBtn.style.cursor = 'pointer';
+                            submitBtn.innerText = 'Перевести мгновенно ➔';
+                        }});
+                        searchResults.appendChild(li);
+                    }});
+                    searchResults.style.display = 'block';
+                }} else {{
+                    const li = document.createElement('li');
+                    li.className = 'search-item';
+                    li.style.color = '#64748b';
+                    li.style.cursor = 'default';
+                    li.innerText = 'Никого не найдено';
+                    searchResults.appendChild(li);
+                    searchResults.style.display = 'block';
+                }}
+            }});
+
+            document.addEventListener('click', function(e) {{
+                if (e.target !== searchInput && e.target !== searchResults) {{
+                    searchResults.style.display = 'none';
+                }}
+            }});
+        </script>
     </body>
     </html>
     """
@@ -242,7 +329,6 @@ def admin_panel(error: str = None, ruler_session: str = Cookie(None)):
         </html>
         """
     
-    # ФОРМА ВХОДА В АДМИНКУ
     error_msg = f'<p style="color: #f43f5e; font-weight: bold;">{error}</p>' if error else ''
     return f"""
     <!DOCTYPE html>
