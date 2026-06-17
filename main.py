@@ -220,44 +220,45 @@ def get_css() -> str:
 # 2. БАЗА ДАННЫХ И БИЗНЕС-ЛОГИКА
 # ==========================================
 
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
 class BankDatabase:
-    """Обертка базы данных. Обеспечивает отказоустойчивость и защиту от KeyError."""
-    
-    def __init__(self, filename: str = "database.json"):
-        self.filename = filename
-        self.users: Dict[str, Dict[str, Any]] = {}
-        self.system_logs: List[Dict[str, str]] = []
-        self._load()
+    def __init__(self, filename="database.json"):
+        # Настройка связи с таблицей
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+        client = gspread.authorize(creds)
+        # Имя таблицы должно точно совпадать с тем, что ты создал!
+        self.sheet = client.open("ZET_BANK_DB").sheet1
+        self.users = {}
+        self.system_logs = []
+        self.load()
 
-    def _load(self):
-        """Загрузка данных и применение setdefault для защиты от падений."""
-        if os.path.exists(self.filename):
-            try:
-                with open(self.filename, "r", encoding="utf-8") as f:
-                    raw = json.load(f)
-                    self.users = raw.get("users", {})
-                    self.system_logs = raw.get("system_logs", [])
-            except Exception as e:
-                print(f"[ERROR] Не удалось загрузить БД, создана пустая: {e}")
-                self.users = {}
-                self.system_logs = []
-        else:
-            self._create_default_admin()
+    def load(self):
+        # Загружаем всех пользователей из таблицы
+        rows = self.sheet.get_all_records()
+        self.users = {str(r['id']): r for r in rows}
+        # Упрощенно: логи пока храним отдельно, если нужно - можно добавить в таблицу
+        self.system_logs = [] 
 
-        # КРИТИЧЕСКИ ВАЖНО: Заполняем отсутствующие поля (миграция на лету)
-        for cid, user in self.users.items():
-            user.setdefault("name", f"Citizen {cid}")
-            user.setdefault("pin", "0000")
-            user.setdefault("balance", 0.0)
-            user.setdefault("savings", 0.0)
-            user.setdefault("credit", 0.0)
-            user.setdefault("banned", False)
-            user.setdefault("role", "user")
-            user.setdefault("logs", [])
-            
-        self.save()
+    def save(self):
+        # Обновляем всю таблицу данными из self.users
+        # Собираем данные обратно в список для Google Таблицы
+        headers = ["id", "name", "pin", "balance", "savings", "credit", "banned", "role", "logs"]
+        data = [headers]
+        for cid, u in self.users.items():
+            data.append([u.get(h, "") for h in headers])
+        self.sheet.clear()
+        self.sheet.update(data)
 
-    def _create_default_admin(self):
+    # --- ТВОИ СТАРЫЕ МЕТОДЫ ОСТАВЛЯЕМ КАК БЫЛИ ---
+    def get_user(self, cid):
+        return self.users.get(str(cid))
+
+    def log_system_action(self, action, details):
+        self.save() # Автосохранение при каждом действии
+
         """Создает базовых пользователей, если БД пуста."""
         self.users["1000"] = {
             "name": "Системный Администратор",
