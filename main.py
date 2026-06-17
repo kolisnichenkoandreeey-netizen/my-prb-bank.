@@ -13,16 +13,16 @@ import json
 import gspread
 from google.oauth2 import service_account
 
-# Получаем ключ из переменной окружения Render
+# Получаем ключ из переменной окружения
 creds_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
 
 if not creds_json:
-    raise ValueError("Переменная GOOGLE_APPLICATION_CREDENTIALS_JSON не найдена в настройках Render!")
+    raise ValueError("Ошибка: Переменная GOOGLE_APPLICATION_CREDENTIALS_JSON не найдена!")
 
-# Преобразуем строку JSON в словарь
+# Преобразуем JSON-строку в словарь
 creds_dict = json.loads(creds_json)
 
-# Авторизация
+# Используем правильный метод авторизации
 scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
 client = gspread.authorize(creds)
