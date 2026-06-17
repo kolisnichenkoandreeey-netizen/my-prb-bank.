@@ -7,7 +7,7 @@ app = FastAPI()
 
 DB_FILE = "database.json"
 
-# Настоящие граждане из книги «Сказкалор дин Приднестровье»!
+# Настоящие граждане из книги «Сказкалор дин Приднестровье»
 DEFAULT_DATA = {
     "1": {"name": "Ченушара (Фата ку ковтун)", "balance": 450, "history": []},
     "2": {"name": "Хансел (Куматрул мик)", "balance": 3200, "history": []},
@@ -31,7 +31,7 @@ def save_db(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# ЛК ГРАЖДАН
+# ГЛАВНАЯ СТРАНИЦА ВХОДА ДЛЯ ГРАЖДАН
 @app.get("/", response_class=HTMLResponse)
 def citizen_login_view():
     db = load_db()
@@ -167,23 +167,20 @@ def admin_panel():
     </html>
     """
 
-# Защищенный обработчик POST-запроса формы
+# ОБРАБОТЧИК ФОРМЫ (МЕТОД POST)
 @app.post("/charge")
 def charge_money(citizen_id: str = Form(...), amount: int = Form(...), reason: str = Form(...)):
     db = load_db()
-    if citizen_id not in db:
-        return RedirectResponse(url="/admin", status_code=303)
-    
-    db[citizen_id]["balance"] -= amount
-    db[citizen_id]["history"].append({
-        "amount": amount,
-        "reason": reason
-    })
-    save_db(db)
-    # Строго перенаправляем обратно в админку с кодом 303 (чтобы метод сбросился на GET)
+    if citizen_id in db:
+        db[citizen_id]["balance"] -= amount
+        db[citizen_id]["history"].append({
+            "amount": amount,
+            "reason": reason
+        })
+        save_db(db)
     return RedirectResponse(url="/admin", status_code=303)
 
-# На всякий случай обрабатываем GET на /charge, чтобы не было Not Found
+# ЗАЩИТА: ЕСЛИ КТО-ТО ПЕРЕЙДЕТ НА /charge ОШИБОЧНО ЧЕРЕЗ GET — ПЕРЕНАПРАВЛЯЕМ В АДМИНКУ
 @app.get("/charge")
 def charge_get_redirect():
     return RedirectResponse(url="/admin")
