@@ -1059,4 +1059,7 @@ def admin_action():
     return build_redirect("/admin", success=success_msg, error=error_msg)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    # Render требует, чтобы Flask слушал порт 10000
+    # Или порт из переменной окружения PORT
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
