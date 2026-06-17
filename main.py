@@ -244,24 +244,22 @@ class BankDatabase:
         self.businesses = {}
         self.employees = []
         self.system_logs = []  # Хранятся в памяти для экономии квот Sheets
-        
         self.load()
         self.init_db()
-
-    def init_db(self):
-        """Создает системного администратора при пустой базе."""
-        if not self.users:
-            self.users["1000"] = {
-                "name": "Системный Администратор",
-                "pin": "7777",
-                "balance": 1000000.0,
-                "savings": 0.0,
-                "credit": 0.0,
-                "credit_date": "",
-                "banned": False,
-                "role": "admin",
-                "logs": []
-            }
+       def init_db(self):
+            """Создает системного администратора при пустой базе."""
+                        if not self.users:
+                        self.users["1000"] = {
+                        "name": "Системный Администратор",
+                        "pin": "7777",
+                        "balance": 1000000.0,
+                        "savings": 0.0,
+                        "credit": 0.0,
+                        "credit_date": "",
+                        "banned": False,
+                        "role": "admin",
+                        "logs": []
+                    }
             self.save_users()
 
     def load(self):
