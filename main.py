@@ -11,15 +11,16 @@ DB_FILE = "database.json"
 ADMIN_USERNAME = "admin"
 ADMIN_PIN = "7777"
 
+# НОВАЯ СТРУКТУРА: балансы по нулям, новые имена и прочерки
 DEFAULT_DATA = {
     "citizens": {
-        "1": {"name": "Ченушара (Фата ку ковтун)", "balance": 450, "pin": "1111", "history": []},
-        "2": {"name": "Хансел (Куматрул мик)", "balance": 3200, "pin": "2222", "history": []},
-        "3": {"name": "Гретел (Дештеаптэ)", "balance": 5000, "pin": "3333", "history": []},
-        "4": {"name": "Алба-ка-Зэпада", "balance": 12500, "pin": "4444", "history": []},
-        "5": {"name": "Аладдин (Омул ку лампа)", "balance": 150, "pin": "5555", "history": []}
+        "1": {"name": "Маргарита", "balance": 0, "pin": "1111", "history": []},
+        "2": {"name": "Братишкин", "balance": 0, "pin": "2222", "history": []},
+        "3": {"name": "—", "balance": 0, "pin": "3333", "history": []},
+        "4": {"name": "—", "balance": 0, "pin": "4444", "history": []},
+        "5": {"name": "—", "balance": 0, "pin": "5555", "history": []}
     },
-    "global_logs": []
+    "global_logs": ["🧹 Система перезапущена. Балансы обнулены, база данных обновлена."]
 }
 
 def load_db():
