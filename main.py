@@ -7,13 +7,13 @@ app = FastAPI()
 
 DB_FILE = "database.json"
 
-# Стартовая база данных граждан нашей страны
+# Настоящие граждане из книги «Сказкалор дин Приднестровье»!
 DEFAULT_DATA = {
-    "1": {"name": "Куматрул Вася", "balance": 15000, "history": []},
-    "2": {"name": "Ченушара (Золушка)", "balance": 450, "history": []},
-    "3": {"name": "Хансел", "balance": 3200, "history": []},
-    "4": {"name": "Гретел", "balance": 5000, "history": []},
-    "5": {"name": "Кэмаша Рошие (Шапочка)", "balance": 1200, "history": []}
+    "1": {"name": "Ченушара (Фата ку ковтун)", "balance": 450, "history": []},
+    "2": {"name": "Хансел (Куматрул мик)", "balance": 3200, "history": []},
+    "3": {"name": "Гретел (Дештеаптэ)", "balance": 5000, "history": []},
+    "4": {"name": "Алба-ка-Зэпада", "balance": 12500, "history": []},
+    "5": {"name": "Аладдин (Омул ку лампа)", "balance": 150, "history": []}
 }
 
 def load_db():
@@ -22,18 +22,20 @@ def load_db():
             json.dump(DEFAULT_DATA, f, ensure_ascii=False, indent=4)
         return DEFAULT_DATA
     with open(DB_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except:
+            return DEFAULT_DATA
 
 def save_db(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# --- 1. ИНТЕРФЕЙС ГРАЖДАНИНА (Личный кабинет) ---
+# ЛК ГРАЖДАН
 @app.get("/", response_class=HTMLResponse)
 def citizen_login_view():
     db = load_db()
     options = "".join([f'<option value="{cid}">{data["name"]}</option>' for cid, data in db.items()])
-    
     return f"""
     <!DOCTYPE html>
     <html>
@@ -52,8 +54,8 @@ def citizen_login_view():
     </head>
     <body>
         <div class="card">
-            <h1>БАНТЫ-БАНК</h1>
-            <p style="color: #64748b; font-size: 0.9rem;">Вход в личный кабинет гражданина</p>
+            <h1>БАНТЫ-БАНК 🏛️</h1>
+            <p style="color: #64748b; font-size: 0.9rem;">Личный кабинет гражданина Приднестровья</p>
             <form action="/cabinet" method="get">
                 <select name="citizen_id">
                     {options}
@@ -70,12 +72,10 @@ def citizen_cabinet(citizen_id: str):
     db = load_db()
     if citizen_id not in db:
         return RedirectResponse(url="/")
-    
     user = db[citizen_id]
-    history_rows = "".join([f"<li>⚠️ Списано <b>{h['amount']} PRB</b> — {h['reason']}</li>" for h in reversed(user["history"])])
+    history_rows = "".join([f"<li>⚠️ Изъято: <b>{h['amount']} PRB</b> — {h['reason']}</li>" for h in reversed(user["history"])])
     if not history_rows:
-        history_rows = "<li style='color: #64748b;'>Транзакций пока нет. Правитель доволен вашей лояльностью!</li>"
-
+        history_rows = "<li style='color: #64748b;'>Транзакций нет. Правитель доволен вашей лояльностью!</li>"
     return f"""
     <!DOCTYPE html>
     <html>
@@ -95,24 +95,21 @@ def citizen_cabinet(citizen_id: str):
     </head>
     <body>
         <div class="box">
-            <h2 style="margin:0;">Салют, {user['name']}!</h2>
-            <p style="color: #64748b; margin: 5px 0 0 0; font-size: 0.85rem;">Банты-Банк Лтд. Валюта: Приднестровский рубль</p>
-            
+            <h2>Салют, {user['name']}!</h2>
+            <p style="color: #64748b; margin: -10px 0 20px 0; font-size: 0.85rem;">Валюта: Приднестровский рубль (PRB)</p>
             <div class="balance-card">
-                <div style="color: #94a3b8; font-size: 0.9rem;">Солдул ачаста (Ваш баланс банты):</div>
+                <div style="color: #94a3b8; font-size: 0.9rem;">Ваш баланс банты:</div>
                 <div class="amount">{user['balance']} PRB</div>
             </div>
-
-            <h3>История уведомлений и списаний Правителя:</h3>
+            <h3>История изъятий Правителя:</h3>
             <ul>{history_rows}</ul>
-            
-            <a href="/" class="back-link">← Выйти из кабинета</a>
+            <a href="/" class="back-link">← Выйти</a>
         </div>
     </body>
     </html>
     """
 
-# --- 2. ИНТЕРФЕЙС ПРАВИТЕЛЯ (Секретная админка) ---
+# ПАНЕЛЬ ПРАВИТЕЛЯ (АДМИНКА)
 @app.get("/admin", response_class=HTMLResponse)
 def admin_panel():
     db = load_db()
@@ -126,14 +123,13 @@ def admin_panel():
             <td>
                 <form action="/charge" method="post" style="display: flex; gap: 8px;">
                     <input type="hidden" name="citizen_id" value="{cid}">
-                    <input type="number" name="amount" placeholder="Сколько рублей списать" style="width: 140px; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff;" required>
-                    <input type="text" name="reason" placeholder="Причина изъятия банты" style="width: 180px; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff;" required>
-                    <button type="submit" style="background: #f43f5e; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Списать PRB</button>
+                    <input type="number" name="amount" placeholder="Сколько PRB" style="width: 110px; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff;" required>
+                    <input type="text" name="reason" placeholder="Причина изъятия" style="width: 180px; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff;" required>
+                    <button type="submit" style="background: #f43f5e; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Списать</button>
                 </form>
             </td>
         </tr>
         """
-
     return f"""
     <!DOCTYPE html>
     <html>
@@ -151,15 +147,14 @@ def admin_panel():
     </head>
     <body>
         <div class="panel">
-            <h1>ПАНЕЛЬ ПРАВИТЕЛЯ (УПРАВЛЕНИЕ БАНТАМИ)</h1>
-            <p style="color: #64748b; margin: 5px 0 0 0;">Принудительное изъятие приднестровских рублей со счетов граждан</p>
-            
+            <h1>ПАНЕЛЬ ПРАВИТЕЛЯ 👑</h1>
+            <p style="color: #64748b; margin: 5px 0 0 0;">Принудительное изъятие приднестровских рублей со счетов сказочных граждан</p>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Гражданин страны</th>
-                        <th>Баланс (Приднестровский Рубль)</th>
+                        <th>Гражданин</th>
+                        <th>Баланс банты</th>
                         <th>Карательное списание средств</th>
                     </tr>
                 </thead>
@@ -172,20 +167,23 @@ def admin_panel():
     </html>
     """
 
+# Защищенный обработчик POST-запроса формы
 @app.post("/charge")
 def charge_money(citizen_id: str = Form(...), amount: int = Form(...), reason: str = Form(...)):
     db = load_db()
     if citizen_id not in db:
-        raise HTTPException(status_code=404, detail="Гражданин не найден")
+        return RedirectResponse(url="/admin", status_code=303)
     
-    # Списываем деньги со счета
     db[citizen_id]["balance"] -= amount
-    
-    # Записываем причину в историю уведомлений
     db[citizen_id]["history"].append({
         "amount": amount,
         "reason": reason
     })
-    
     save_db(db)
+    # Строго перенаправляем обратно в админку с кодом 303 (чтобы метод сбросился на GET)
     return RedirectResponse(url="/admin", status_code=303)
+
+# На всякий случай обрабатываем GET на /charge, чтобы не было Not Found
+@app.get("/charge")
+def charge_get_redirect():
+    return RedirectResponse(url="/admin")
