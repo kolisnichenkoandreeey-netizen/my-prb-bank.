@@ -16,7 +16,7 @@ DEFAULT_DATA = {
     "citizens": {
         "1": {"name": "Маргарита", "balance": 1487, "pin": "1111", "history": ["🎁 Стартовый баланс: <b>1487 PRB</b>"]},
         "2": {"name": "Братишкин", "balance": 1, "pin": "2222", "history": ["🎁 Стартовый баланс: <b>1 PRB</b>"]},
-        "3": {"name": "—", "balance": 0, "pin": "3333", "history": []},
+        "3": {"name": "Аня", "balance": 67, "pin": "7321", "history": []},
         "4": {"name": "—", "balance": 0, "pin": "4444", "history": []},
         "5": {"name": "—", "balance": 0, "pin": "5555", "history": []},
         "6": {"name": "—", "balance": 0, "pin": "6666", "history": []},
