@@ -65,7 +65,7 @@ def citizen_login_view(error: str = None):
     <body>
         <div class="card">
             <h1>ZET БАНК ⚡</h1>
-            <p style="color: #94a3b8; font-size: 0.9rem;">Новое поколение цифровых бант</p>
+            <p style="color: #94a3b8; font-size: 0.9rem;">Новое поколение цифровых рублей (PRB)</p>
             {error_msg}
             <form action="/login" method="post">
                 <select name="citizen_id">
@@ -241,7 +241,7 @@ def admin_panel(error: str = None, ruler_session: str = Cookie(None)):
         </html>
         """
     
-    # ФОРМА ВХОДА В АДМИНКУ СЕБЕ
+    # ФОРМА ВХОДА В АДМИНКУ
     error_msg = f'<p style="color: #f43f5e; font-weight: bold;">{error}</p>' if error else ''
     return f"""
     <!DOCTYPE html>
@@ -294,7 +294,7 @@ def change_pin_process(citizen_id: str = Form(...), new_pin: str = Form(...), ru
         user = db["citizens"][citizen_id]
         old_pin = user["pin"]
         user["pin"] = new_pin
-        db["global_logs"].append(f"🔑 Установлен новый PIN для {user['name']} (Был: {old_pin} -> Став: {new_pin})")
+        db["global_logs"].append(f"🔑 Установлен новый PIN для {user['name']} (Был: {old_pin} -> Стал: {new_pin})")
         save_db(db)
     return RedirectResponse(url="/admin", status_code=303)
 
