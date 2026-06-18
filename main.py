@@ -239,28 +239,28 @@ class BankDatabase:
         self.sheet_users = get_or_create_sheet("Users", 1000, 10)
         self.sheet_businesses = get_or_create_sheet("Businesses", 100, 4)
         self.sheet_employees = get_or_create_sheet("Employees", 500, 3)
-
-        self.users = {}
+self.users = {}
         self.businesses = {}
         self.employees = []
         self.system_logs = []  # Хранятся в памяти для экономии квот Sheets
         self.load()
         self.init_db()
-       def init_db(self):
-            """Создает системного администратора при пустой базе."""
-                        if not self.users:
-                        self.users["1000"] = {
-                        "name": "Системный Администратор",
-                        "pin": "7777",
-                        "balance": 1000000.0,
-                        "savings": 0.0,
-                        "credit": 0.0,
-                        "credit_date": "",
-                        "banned": False,
-                        "role": "admin",
-                        "logs": []
-                    }
-            self.save_users()
+
+    def init_db(self):
+        """Создает системного администратора при пустой базе."""
+        if not self.users:
+            self.users["1000"] = {
+                "name": "Системный Администратор",
+                "pin": "7777",
+                "balance": 1000000.0,
+                "savings": 0.0,
+                "credit": 0.0,
+                "credit_date": "",
+                "banned": False,
+                "role": "admin",
+                "logs": []
+            }
+        self.save_users()
 
     def load(self):
         """Считывает данные из Google Sheets (Кеширование)"""
