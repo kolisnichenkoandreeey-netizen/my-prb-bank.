@@ -257,7 +257,9 @@ class BankDatabase:
                 "logs": []
             }
             self.save_users()
-            def find_user_by_name(self, name_query):
+    # <--- Здесь функция init_db заканчивается, отступ возвращается к уровню класса (4 пробела)
+
+    def find_user_by_name(self, name_query):
         results = []
         for user_id, data in self.users.items():
             if name_query.lower() in data.get("name", "").lower():
@@ -265,7 +267,9 @@ class BankDatabase:
                 user_info["id"] = user_id
                 results.append(user_info)
         return results
+
     def load(self):
+        # ... твой код ...
         """Считывает данные из Google Sheets (Кеширование)"""
         # Считываем пользователей
         users_records = self.sheet_users.get_all_records()
