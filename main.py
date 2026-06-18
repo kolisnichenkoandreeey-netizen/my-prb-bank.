@@ -418,7 +418,7 @@ def transfer():
         <br><a href="/">На главную</a>
     ''', message=message)
 
-        if action == "deposit":
+if action == "deposit":
             if user["balance"] < amount: return False, "Недостаточно средств."
             user["balance"] -= amount
             user["savings"] += amount
