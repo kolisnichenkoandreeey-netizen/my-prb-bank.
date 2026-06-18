@@ -388,40 +388,35 @@ class BankDatabase:
                         pass
         if changed:
             self.save_users()
-
-    # --- ФИНАНСОВЫЕ ОПЕРАЦИИ (ПОЛЬЗОВАТЕЛИ) ---
-
-    def process_transfer(self, sender_id: str, recipient_name: str, amount: float) -> Tuple[bool, str]:
-        if amount <= 0: return False, "Сумма должна быть больше нуля."
+@app.route('/transfer', methods=['GET', 'POST'])
+def transfer():
+    message = None
+    if request.method == 'POST':
+        # Получаем данные из формы
+        recipient_name = request.form.get('recipient_name')
+        amount = float(request.form.get('amount', 0))
         
-        sender = self.get_user(sender_id)
-        if not sender: return False, "Отправитель не найден."
-        if sender["banned"]: return False, "Ваш счет заблокирован. Операция отклонена."
-        if sender["balance"] < amount: return False, "Недостаточно средств на основном счете."
-
-        matches = self.find_users_by_name(recipient_name)
-        if not matches: return False, f"Получатель с именем '{recipient_name}' не найден."
-        if len(matches) > 1: return False, f"Найдено несколько пользователей '{recipient_name}'."
+        # Получаем ID того, кто переводит (замени 'user_id' на то имя ключа, 
+        # которое у тебя в session, например 'cid' или 'id')
+        sender_id = session.get('user_id')
         
-        recipient_id = matches[0]
-        if sender_id == recipient_id: return False, "Нельзя перевести средства самому себе."
+        # Вызываем твою функцию
+        success, msg = db.process_transfer(sender_id, recipient_name, amount)
+        message = msg
 
-        recipient = self.get_user(recipient_id)
-        if recipient["banned"]: return False, "Счет получателя заблокирован."
-
-        sender["balance"] -= amount
-        recipient["balance"] += amount
-
-        self.log_user_action(sender_id, f"Перевод {amount:.2f} ₽ -> {recipient['name']}.", auto_save=False)
-        self.log_user_action(recipient_id, f"Получено {amount:.2f} ₽ <- {sender['name']}.", auto_save=False)
-        self.log_system_action("Перевод", f"{sender_id} -> {recipient_id}: {amount:.2f} ₽")
-        self.save_users()
-        return True, "Перевод успешно завершен."
-
-    def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, str]:
-        if amount <= 0: return False, "Сумма должна быть больше нуля."
-        user = self.get_user(cid)
-        if not user or user["banned"]: return False, "Операция недоступна."
+    return render_template_string('''
+        <h2>Перевод средств</h2>
+        {% if message %}
+            <div style="padding: 10px; background: #e0e0e0; margin-bottom: 10px;">{{ message }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <input type="text" name="recipient_name" placeholder="Имя получателя" required>
+            <input type="number" name="amount" placeholder="Сумма" step="0.01" required>
+            <button type="submit">Отправить перевод</button>
+        </form>
+        <br><a href="/">На главную</a>
+    ''', message=message)
 
         if action == "deposit":
             if user["balance"] < amount: return False, "Недостаточно средств."
