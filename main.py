@@ -217,15 +217,7 @@ def get_css() -> str:
 
 class BankDatabase:
    def __init__(self):
-        # Получаем данные из переменной окружения
-        creds_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
-        creds_dict = json.loads(creds_json)
-        
-        # Авторизация
-        scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
-        client = gspread.authorize(creds)
-        
+        # ... твой код авторизации (убедись, что тут 8 пробелов отступа) ...
         self.doc = client.open("ZET_BANK_DB")
         self.sheet = self.doc.sheet1
         
@@ -235,18 +227,17 @@ class BankDatabase:
         self.users = {}
         self.businesses = {}
         self.employees = []
-        self.system_logs = []  # Хранятся в памяти для экономии квот Sheets
+        self.system_logs = []
         self.load()
         self.init_db()
-  def get_or_create_sheet(self, title, rows, cols):
+
+    def get_or_create_sheet(self, title, rows, cols):
         try:
             return self.doc.worksheet(title)
         except gspread.exceptions.WorksheetNotFound:
             return self.doc.add_worksheet(title, rows, cols)
+
     def init_db(self):
-        # Убедись, что код внутри init_db начинается с 8 пробелов!
-        pass
-        """Создает системного администратора при пустой базе."""
         if not self.users:
             self.users["1000"] = {
                 "name": "Системный Администратор",
@@ -259,8 +250,7 @@ class BankDatabase:
                 "role": "admin",
                 "logs": []
             }
-        self.save_users()
-
+            self.save_users()
     def load(self):
         """Считывает данные из Google Sheets (Кеширование)"""
         # Считываем пользователей
