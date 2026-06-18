@@ -447,7 +447,6 @@ def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, s
             user["credit"] += amount
             user["balance"] += amount
             
-            # Установка даты первой выплаты процента (через 30 дней)
             if not user.get("credit_date"):
                 user["credit_date"] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
                 
@@ -461,7 +460,6 @@ def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, s
             user["balance"] -= actual
             user["credit"] -= actual
             
-            # Очистка даты, если кредит закрыт
             if user["credit"] <= 0:
                 user["credit_date"] = ""
                 
