@@ -14,7 +14,7 @@ import gspread
 import urllib.parse  # <--- Добавь это
 from datetime import datetime
 from google.oauth2 import service_account
-from flask import Flask, request, jsonify, redirect, url_for, render_template_string
+from flask import Flask, request, jsonify, redirect, url_for, render_template_string, make_response
 app = Flask(__name__)
 # Получаем ключ из переменной окружения
 creds_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
