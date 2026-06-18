@@ -1073,5 +1073,28 @@ def admin_action():
 if __name__ == "__main__":
     # Render требует, чтобы Flask слушал порт 10000
     # Или порт из переменной окружения PORT
+    # --- Поиск получателя для переводов ---
+@app.route('/find_recipient', methods=['GET', 'POST'])
+def find_recipient():
+    results = []
+    if request.method == 'POST':
+        query = request.form.get('name')
+        results = db.find_user_by_name(query)
+    
+    return render_template_string('''
+        <h2>Поиск получателя</h2>
+        <form method="POST">
+            <input type="text" name="name" placeholder="Введите имя" required>
+            <button type="submit">Найти</button>
+        </form>
+        <hr>
+        {% for user in results %}
+            <div style="margin: 10px 0;">
+                {{ user.name }} (ID: {{ user.id }})
+                <a href="/transfer?target_id={{ user.id }}">Выбрать</a>
+            </div>
+        {% endfor %}
+        <br><a href="/transfer">Назад к переводу</a>
+    ''', results=results)
    if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
