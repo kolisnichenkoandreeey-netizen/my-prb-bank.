@@ -446,27 +446,21 @@ def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, s
             if user["credit"] + amount > 5000000: return False, "Превышен лимит."
             user["credit"] += amount
             user["balance"] += amount
-            
             if not user.get("credit_date"):
                 user["credit_date"] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
-                
             self.log_user_action(cid, f"Взят кредит: {amount:.2f} ₽")
             return True, "Кредит оформлен."
         elif action == "pay":
             if user["balance"] < amount: return False, "Недостаточно средств."
             actual = min(amount, user["credit"])
             if actual <= 0: return False, "У вас нет задолженностей."
-            
             user["balance"] -= actual
             user["credit"] -= actual
-            
             if user["credit"] <= 0:
                 user["credit_date"] = ""
-                
             self.log_user_action(cid, f"Погашение кредита: {actual:.2f} ₽")
             return True, f"Погашено {actual:.2f} ₽."
         return False, "Неизвестная операция."
-
     # --- ФИНАНСОВЫЕ ОПЕРАЦИИ (БИЗНЕС) ---
 
     def process_business_payment(self, cid: str, biz_id: str, amount: float) -> Tuple[bool, str]:
