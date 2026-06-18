@@ -216,17 +216,14 @@ def get_css() -> str:
 # ==========================================
 
 class BankDatabase:
-   def __init__(self):
-        # Авторизация
+    def __init__(self):
         creds_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
         creds_dict = json.loads(creds_json)
         scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
         creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(creds)
-        
         self.doc = client.open("ZET_BANK_DB")
         self.sheet = self.doc.sheet1
-        
         self.sheet_users = self.get_or_create_sheet("Users", 1000, 10)
         self.sheet_businesses = self.get_or_create_sheet("Businesses", 100, 4)
         self.sheet_employees = self.get_or_create_sheet("Employees", 500, 3)
