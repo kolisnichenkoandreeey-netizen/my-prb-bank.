@@ -12,7 +12,7 @@ import os
 import json
 import gspread
 import urllib.parse  # <--- Добавь это
-from datetime import datetime
+from datetime import datetime, timedelta  # <--- Теперь тут два импорта
 from google.oauth2 import service_account
 from flask import Flask, request, jsonify, redirect, url_for, render_template_string, make_response
 app = Flask(__name__)
