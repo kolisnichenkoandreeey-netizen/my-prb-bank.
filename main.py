@@ -388,79 +388,40 @@ class BankDatabase:
                         pass
         if changed:
             self.save_users()
-@app.route('/transfer', methods=['GET', 'POST'])
-def transfer():
-    message = None
-    if request.method == 'POST':
-        # Получаем данные из формы
-        recipient_name = request.form.get('recipient_name')
-        amount = float(request.form.get('amount', 0))
-        
-        # Получаем ID того, кто переводит (замени 'user_id' на то имя ключа, 
-        # которое у тебя в session, например 'cid' или 'id')
-        sender_id = session.get('user_id')
-        
-        # Вызываем твою функцию
-        success, msg = db.process_transfer(sender_id, recipient_name, amount)
-        message = msg
 
-    return render_template_string('''
-        <h2>Перевод средств</h2>
-        {% if message %}
-            <div style="padding: 10px; background: #e0e0e0; margin-bottom: 10px;">{{ message }}</div>
-        {% endif %}
-        
-        <form method="POST">
-            <input type="text" name="recipient_name" placeholder="Имя получателя" required>
-            <input type="number" name="amount" placeholder="Сумма" step="0.01" required>
-            <button type="submit">Отправить перевод</button>
-        </form>
-        <br><a href="/">На главную</a>
-    ''', message=message)
+    # --- ФИНАНСОВЫЕ ОПЕРАЦИИ (ПОЛЬЗОВАТЕЛИ) ---
 
-def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, str]:
-        if amount <= 0: return False, "Сумма должна быть больше нуля."
-        user = self.get_user(cid)
-        if not user or user["banned"]: return False, "Операция недоступна."
+    def process_transfer(self, sender_id: str, recipient_name: str, amount: float) -> Tuple[bool, str]:
+        if amount <= 0: return False, "Сумма должна быть больше нуля."
+        
+        sender = self.get_user(sender_id)
+        if not sender: return False, "Отправитель не найден."
+        if sender["banned"]: return False, "Ваш счет заблокирован. Операция отклонена."
+        if sender["balance"] < amount: return False, "Недостаточно средств на основном счете."
 
-        if action == "deposit":
-            if user["balance"] < amount: return False, "Недостаточно средств."
-            user["balance"] -= amount
-            user["savings"] += amount
-            self.log_user_action(cid, f"Пополнение вклада: {amount:.2f} ₽")
-            return True, "Вклад пополнен."
-        elif action == "withdraw":
-            if user["savings"] < amount: return False, "Недостаточно средств на вкладе."
-            user["savings"] -= amount
-            user["balance"] += amount
-            self.log_user_action(cid, f"Снятие со вклада: {amount:.2f} ₽")
-            return True, "Средства сняты."
-        return False, "Неизвестная операция."
+        matches = self.find_users_by_name(recipient_name)
+        if not matches: return False, f"Получатель с именем '{recipient_name}' не найден."
+        if len(matches) > 1: return False, f"Найдено несколько пользователей '{recipient_name}'."
+        
+        recipient_id = matches[0]
+        if sender_id == recipient_id: return False, "Нельзя перевести средства самому себе."
 
-    def process_credit(self, cid: str, action: str, amount: float) -> Tuple[bool, str]:
-        if amount <= 0: return False, "Сумма должна быть больше нуля."
-        user = self.get_user(cid)
-        if not user or user["banned"]: return False, "Операция недоступна."
+        recipient = self.get_user(recipient_id)
+        if recipient["banned"]: return False, "Счет получателя заблокирован."
 
-        if action == "take":
-            if user["credit"] + amount > 5000000: return False, "Превышен лимит."
-            user["credit"] += amount
-            user["balance"] += amount
-            if not user.get("credit_date"):
-                user["credit_date"] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
-            self.log_user_action(cid, f"Взят кредит: {amount:.2f} ₽")
-            return True, "Кредит оформлен."
-        elif action == "pay":
-            if user["balance"] < amount: return False, "Недостаточно средств."
-            actual = min(amount, user["credit"])
-            if actual <= 0: return False, "У вас нет задолженностей."
-            user["balance"] -= actual
-            user["credit"] -= actual
-            if user["credit"] <= 0:
-                user["credit_date"] = ""
-            self.log_user_action(cid, f"Погашение кредита: {actual:.2f} ₽")
-            return True, f"Погашено {actual:.2f} ₽."
-        return False, "Неизвестная операция."
+        sender["balance"] -= amount
+        recipient["balance"] += amount
+
+        self.log_user_action(sender_id, f"Перевод {amount:.2f} ₽ -> {recipient['name']}.", auto_save=False)
+        self.log_user_action(recipient_id, f"Получено {amount:.2f} ₽ <- {sender['name']}.", auto_save=False)
+        self.log_system_action("Перевод", f"{sender_id} -> {recipient_id}: {amount:.2f} ₽")
+        self.save_users()
+        return True, "Перевод успешно завершен."
+
+    def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, str]:
+        if amount <= 0: return False, "Сумма должна быть больше нуля."
+        user = self.get_user(cid)
+        if not user or user["banned"]: return False, "Операция недоступна."
     # --- ФИНАНСОВЫЕ ОПЕРАЦИИ (БИЗНЕС) ---
 
     def process_business_payment(self, cid: str, biz_id: str, amount: float) -> Tuple[bool, str]:
