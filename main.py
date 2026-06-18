@@ -229,22 +229,21 @@ class BankDatabase:
         self.doc = client.open("ZET_BANK_DB")
         self.sheet = self.doc.sheet1
         
-        # Загрузка или создание листов
-        def get_or_create_sheet(title, rows, cols):
-            try:
-                return self.doc.worksheet(title)
-            except gspread.exceptions.WorksheetNotFound:
-                return self.doc.add_worksheet(title, rows, cols)
-
-        self.sheet_users = get_or_create_sheet("Users", 1000, 10)
-        self.sheet_businesses = get_or_create_sheet("Businesses", 100, 4)
-        self.sheet_employees = get_or_create_sheet("Employees", 500, 3)
-self.users = {}
+       self.sheet_users = self.get_or_create_sheet("Users", 1000, 10)
+        self.sheet_businesses = self.get_or_create_sheet("Businesses", 100, 4)
+        self.sheet_employees = self.get_or_create_sheet("Employees", 500, 3)
+        self.users = {}
         self.businesses = {}
         self.employees = []
         self.system_logs = []  # Хранятся в памяти для экономии квот Sheets
         self.load()
         self.init_db()
+
+    def get_or_create_sheet(self, title, rows, cols):
+        try:
+            return self.doc.worksheet(title)
+        except gspread.exceptions.WorksheetNotFound:
+            return self.doc.add_worksheet(title, rows, cols)
 
     def init_db(self):
         """Создает системного администратора при пустой базе."""
