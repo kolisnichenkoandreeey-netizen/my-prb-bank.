@@ -246,6 +246,8 @@ class BankDatabase:
             return self.doc.add_worksheet(title, rows, cols)
 
     def init_db(self):
+        # Убедись, что код внутри init_db начинается с 8 пробелов!
+        pass
         """Создает системного администратора при пустой базе."""
         if not self.users:
             self.users["1000"] = {
