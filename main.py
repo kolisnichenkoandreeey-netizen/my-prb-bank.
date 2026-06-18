@@ -238,13 +238,11 @@ class BankDatabase:
         self.system_logs = []  # Хранятся в памяти для экономии квот Sheets
         self.load()
         self.init_db()
-
-    def get_or_create_sheet(self, title, rows, cols):
+  def get_or_create_sheet(self, title, rows, cols):
         try:
             return self.doc.worksheet(title)
         except gspread.exceptions.WorksheetNotFound:
             return self.doc.add_worksheet(title, rows, cols)
-
     def init_db(self):
         # Убедись, что код внутри init_db начинается с 8 пробелов!
         pass
