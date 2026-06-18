@@ -418,7 +418,12 @@ def transfer():
         <br><a href="/">На главную</a>
     ''', message=message)
 
-if action == "deposit":
+def process_savings(self, cid: str, action: str, amount: float) -> Tuple[bool, str]:
+        if amount <= 0: return False, "Сумма должна быть больше нуля."
+        user = self.get_user(cid)
+        if not user or user["banned"]: return False, "Операция недоступна."
+
+        if action == "deposit":
             if user["balance"] < amount: return False, "Недостаточно средств."
             user["balance"] -= amount
             user["savings"] += amount
