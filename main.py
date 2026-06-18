@@ -1074,6 +1074,7 @@ if __name__ == "__main__":
     # Render требует, чтобы Flask слушал порт 10000
     # Или порт из переменной окружения PORT
     # --- Поиск получателя для переводов ---
+# --- Поиск получателя для переводов ---
 @app.route('/find_recipient', methods=['GET', 'POST'])
 def find_recipient():
     results = []
