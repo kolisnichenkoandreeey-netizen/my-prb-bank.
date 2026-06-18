@@ -257,6 +257,14 @@ class BankDatabase:
                 "logs": []
             }
             self.save_users()
+            def find_user_by_name(self, name_query):
+        results = []
+        for user_id, data in self.users.items():
+            if name_query.lower() in data.get("name", "").lower():
+                user_info = data.copy()
+                user_info["id"] = user_id
+                results.append(user_info)
+        return results
     def load(self):
         """Считывает данные из Google Sheets (Кеширование)"""
         # Считываем пользователей
